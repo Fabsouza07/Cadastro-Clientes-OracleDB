@@ -164,8 +164,13 @@ final class MainFrame extends JFrame {
     label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 17));
     label.setForeground(TEXT);
     top.add(label, BorderLayout.WEST);
-    search.putClientProperty("JTextField.placeholderText", "Pesquisar por nome ou cidade");
-    search.setPreferredSize(new Dimension(245, 34));
+    search.putClientProperty(
+        "JTextField.placeholderText", "Localizar por ID, nome, cidade ou e-mail");
+    search.setToolTipText("Digite o ID para localizar um único registro rapidamente.");
+    search.setPreferredSize(new Dimension(290, 34));
+    JLabel searchLabel = new JLabel("Localizar cliente");
+    searchLabel.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+    searchLabel.setForeground(MUTED);
     search
         .getDocument()
         .addDocumentListener(
@@ -182,7 +187,11 @@ final class MainFrame extends JFrame {
                 pesquisar();
               }
             });
-    top.add(search, BorderLayout.EAST);
+    JPanel searchArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    searchArea.setOpaque(false);
+    searchArea.add(searchLabel);
+    searchArea.add(search);
+    top.add(searchArea, BorderLayout.EAST);
     p.add(top, BorderLayout.NORTH);
     table.setRowHeight(38);
     table.setFont(new Font("Segoe UI", Font.PLAIN, 14));

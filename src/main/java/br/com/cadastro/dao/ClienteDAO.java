@@ -4,25 +4,27 @@ import br.com.cadastro.model.Cliente;
 import br.com.cadastro.model.Estatisticas;
 import br.com.cadastro.util.Conexao;
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public final class ClienteDAO {
   public long inserir(Cliente cliente) throws SQLException {
-    String sql = "INSERT INTO clientes(nome,idade,cidade,email,telefone_fixo,telefone_celular) VALUES(?,?,?,?,?,?)";
+    String sql =
+        "BEGIN INSERT INTO clientes(nome,idade,cidade,email,telefone_fixo,telefone_celular) "
+            + "VALUES(?,?,?,?,?,?) RETURNING id INTO ?; END;";
     try (Connection conexao = Conexao.abrir();
-        PreparedStatement comando =
-            conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        CallableStatement comando = conexao.prepareCall(sql)) {
       preencher(comando, cliente);
+      comando.registerOutParameter(7, Types.BIGINT);
       comando.executeUpdate();
-      try (ResultSet chaves = comando.getGeneratedKeys()) {
-        return chaves.next() ? chaves.getLong(1) : 0;
-      }
+      return comando.getLong(7);
     }
   }
 
@@ -58,14 +60,22 @@ public final class ClienteDAO {
   }
 
   public List<Cliente> pesquisar(String termo) throws SQLException {
+    try {
+      return buscarPorId(Long.parseLong(termo)).map(List::of).orElseGet(List::of);
+    } catch (NumberFormatException ignored) {
+      // Termos não numéricos são pesquisados nos campos textuais abaixo.
+    }
+
     String sql =
         "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM clientes "
-            + "WHERE LOWER(nome) LIKE LOWER(?) OR LOWER(cidade) LIKE LOWER(?) ORDER BY nome";
+            + "WHERE LOWER(nome) LIKE LOWER(?) OR LOWER(cidade) LIKE LOWER(?) "
+            + "OR LOWER(email) = LOWER(?) ORDER BY nome";
     List<Cliente> clientes = new ArrayList<>();
     try (Connection conexao = Conexao.abrir();
         PreparedStatement comando = conexao.prepareStatement(sql)) {
       comando.setString(1, "%" + termo + "%");
       comando.setString(2, "%" + termo + "%");
+      comando.setString(3, termo);
       try (ResultSet resultado = comando.executeQuery()) {
         while (resultado.next()) {
           clientes.add(mapear(resultado));
@@ -110,15 +120,16 @@ public final class ClienteDAO {
         }
       }
       try (ResultSet resultado =
-          comando.executeQuery("SELECT TOP 1 nome FROM clientes ORDER BY idade DESC, nome")) {
+          comando.executeQuery(
+              "SELECT nome FROM clientes ORDER BY idade DESC, nome FETCH FIRST 1 ROW ONLY")) {
         if (resultado.next()) {
           maisVelho = resultado.getString(1);
         }
       }
       try (ResultSet resultado =
           comando.executeQuery(
-              "SELECT TOP 1 cidade, COUNT(*) qtd FROM clientes "
-                  + "GROUP BY cidade ORDER BY qtd DESC, cidade")) {
+              "SELECT cidade, COUNT(*) qtd FROM clientes "
+                  + "GROUP BY cidade ORDER BY qtd DESC, cidade FETCH FIRST 1 ROW ONLY")) {
         if (resultado.next()) {
           cidade = resultado.getString(1);
         }

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>br.com.cadastro</groupId>
-    <artifactId>sistema-cadastro-clientes-sqlserver</artifactId>
+    <artifactId>sistema-cadastro-clientes-oracle</artifactId>
     <version>2.0.0</version>
 
     <properties>
@@ -14,9 +14,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>13.4.0.jre11</version>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>23.9.0.25.07</version>
         </dependency>
     </dependencies>
 
