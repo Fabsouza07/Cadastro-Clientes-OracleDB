@@ -1,10 +1,7 @@
 package br.com.cadastro.dao;
 
-import br.com.cadastro.model.Cliente;
-import br.com.cadastro.model.Estatisticas;
-import br.com.cadastro.util.Conexao;
-import java.sql.Connection;
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,7 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public final class ClienteDAO {
+import br.com.cadastro.model.Cliente;
+import br.com.cadastro.model.Estatisticas;
+import br.com.cadastro.util.Conexao;
+
+public class ClienteDAO {
   public long inserir(Cliente cliente) throws SQLException {
     String sql =
         "BEGIN INSERT INTO clientes(nome,idade,cidade,email,telefone_fixo,telefone_celular) "

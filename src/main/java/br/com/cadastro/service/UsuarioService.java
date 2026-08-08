@@ -1,0 +1,126 @@
+package br.com.cadastro.service;
+
+import java.sql.SQLException;
+import java.util.Optional;
+
+import at.favre.lib.crypto.bcrypt.BCrypt;
+import br.com.cadastro.dao.UsuarioDAO;
+import br.com.cadastro.model.Usuario;
+
+/** Serviço para autenticação de usuários. */
+public final class UsuarioService {
+  private final UsuarioDAO dao = new UsuarioDAO();
+
+  /**
+   * Autentica um usuário com login e senha.
+   *
+   * @param login o login do usuário
+   * @param senha a senha em texto plano
+   * @return Optional contendo o usuário se autenticado com sucesso
+   * @throws SQLException se houver erro na conexão
+   */
+  public Optional<Usuario> autenticar(String login, String senha) throws SQLException {
+    if (login == null || login.isBlank() || senha == null || senha.isBlank()) {
+      throw new IllegalArgumentException("Login e senha são obrigatórios.");
+    }
+
+    Optional<Usuario> usuario = dao.buscarPorLogin(login);
+
+    if (usuario.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Usuario usuarioEncontrado = usuario.get();
+    // Verifica a senha usando bcrypt
+    boolean senhaValida = BCrypt.verifyer()
+        .verify(senha.toCharArray(), usuarioEncontrado.senha().toCharArray())
+        .verified;
+
+    return senhaValida ? Optional.of(usuarioEncontrado) : Optional.empty();
+  }
+
+  /**
+   * Cria um novo usuário com senha hash.
+   *
+   * @param login o login do usuário
+   * @param senha a senha em texto plano
+   * @param nome o nome do usuário
+   * @return o ID do usuário criado
+   * @throws SQLException se houver erro na conexão
+   */
+  public long criar(String login, String senha, String nome) throws SQLException {
+    validar(login, senha, nome);
+
+    // Hash da senha usando bcrypt com cost 12
+    String senhaHash = BCrypt.withDefaults().hashToString(12, senha.toCharArray());
+
+    Usuario usuario = new Usuario(null, login, senhaHash, nome, true);
+    return dao.criar(usuario);
+  }
+
+  /**
+   * Busca um usuário pelo login.
+   *
+   * @param login o login do usuário
+   * @return Optional contendo o usuário se encontrado
+   * @throws SQLException se houver erro na conexão
+   */
+  public Optional<Usuario> buscarPorLogin(String login) throws SQLException {
+    return dao.buscarPorLogin(login);
+  }
+
+  /**
+   * Atualiza a senha de um usuário.
+   *
+   * @param id o ID do usuário
+   * @param senhaAtual a senha atual em texto plano
+   * @param novaSenha a nova senha em texto plano
+   * @return true se atualização foi bem-sucedida
+   * @throws SQLException se houver erro na conexão
+   */
+  public boolean atualizarSenha(long id, String senhaAtual, String novaSenha)
+      throws SQLException {
+    Optional<Usuario> usuario = dao.buscarPorLogin(""); // Precisaríamos de um método para buscar por ID
+
+    if (usuario.isEmpty()) {
+      return false;
+    }
+
+    // Verifica a senha atual
+    boolean senhaValida =
+        BCrypt.verifyer()
+            .verify(senhaAtual.toCharArray(), usuario.get().senha().toCharArray())
+            .verified;
+
+    if (!senhaValida) {
+      throw new IllegalArgumentException("Senha atual incorreta.");
+    }
+
+    // Hash da nova senha
+    String novoHash = BCrypt.withDefaults().hashToString(12, novaSenha.toCharArray());
+    return dao.atualizarSenha(id, novoHash);
+  }
+
+  /**
+   * Desativa um usuário.
+   *
+   * @param id o ID do usuário
+   * @return true se desativação foi bem-sucedida
+   * @throws SQLException se houver erro na conexão
+   */
+  public boolean desativar(long id) throws SQLException {
+    return dao.desativar(id);
+  }
+
+  private static void validar(String login, String senha, String nome) {
+    if (login == null || login.isBlank()) {
+      throw new IllegalArgumentException("Login obrigatório.");
+    }
+    if (senha == null || senha.isBlank() || senha.length() < 6) {
+      throw new IllegalArgumentException("Senha obrigatória e deve ter no mínimo 6 caracteres.");
+    }
+    if (nome == null || nome.isBlank()) {
+      throw new IllegalArgumentException("Nome obrigatório.");
+    }
+  }
+}

@@ -34,7 +34,11 @@ public final class Main {
               splash.dispose();
               try {
                 get();
-                new MainFrame().setVisible(true);
+                // Exibe a tela de login
+                new LoginFrame(usuario -> {
+                  // Após login bem-sucedido, abre MainFrame com dados do usuário
+                  new MainFrame(usuario).setVisible(true);
+                }).setVisible(true);
               } catch (InterruptedException | ExecutionException e) {
                 JOptionPane.showMessageDialog(
                     null,

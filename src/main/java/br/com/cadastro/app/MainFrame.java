@@ -42,6 +42,7 @@ import javax.swing.text.MaskFormatter;
 
 import br.com.cadastro.model.Cliente;
 import br.com.cadastro.model.Estatisticas;
+import br.com.cadastro.model.Usuario;
 import br.com.cadastro.service.ClienteService;
 import br.com.cadastro.util.Config;
 import br.com.cadastro.util.Csv;
@@ -52,6 +53,7 @@ final class MainFrame extends JFrame {
   private static final String MASCARA_TELEFONE_FIXO = "(##) ####-####";
   private static final String MASCARA_TELEFONE_CELULAR = "(##) #####-####";
   private final ClienteService service = new ClienteService();
+  private final Usuario usuarioLogado;
   private final DefaultTableModel tableModel =
       new DefaultTableModel(
           new String[] {"ID", "Nome", "Idade", "Cidade", "E-mail", "Fixo", "Celular"}, 0) {
@@ -67,8 +69,9 @@ final class MainFrame extends JFrame {
       oldest = valueLabel(),
       city = valueLabel();
 
-  MainFrame() {
+  MainFrame(Usuario usuario) {
     super("Cadastro de Clientes");
+    this.usuarioLogado = usuario;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setUndecorated(true); // Remove e, portanto, desabilita os controles nativos da janela.
     setExtendedState(MAXIMIZED_BOTH);
@@ -99,6 +102,9 @@ final class MainFrame extends JFrame {
     JLabel brand = new JLabel("C   Cadastro de Clientes");
     brand.setForeground(Color.WHITE);
     brand.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 20));
+    JLabel user = new JLabel("Usuário: " + usuarioLogado.nome() + "   ");
+    user.setForeground(new Color(203, 213, 225));
+    user.setFont(new Font("Segoe UI", Font.PLAIN, 12));
     JLabel db = new JLabel("Banco: " + Config.get("app.banco") + "   ");
     db.setForeground(new Color(203, 213, 225));
     db.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -106,6 +112,7 @@ final class MainFrame extends JFrame {
     exit.addActionListener(e -> solicitarSaida());
     JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
     actions.setOpaque(false);
+    actions.add(user);
     actions.add(db);
     actions.add(exit);
     p.add(brand, BorderLayout.WEST);
