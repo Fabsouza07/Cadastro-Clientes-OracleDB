@@ -1,8 +1,14 @@
 package br.com.cadastro.app;
 
+import java.awt.Font;
+import java.util.concurrent.ExecutionException;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+
 import br.com.cadastro.util.Conexao;
-import java.awt.*;
-import javax.swing.*;
 
 /** Ponto de entrada da aplicação gráfica. */
 public final class Main {
@@ -29,7 +35,7 @@ public final class Main {
               try {
                 get();
                 new MainFrame().setVisible(true);
-              } catch (Exception e) {
+              } catch (InterruptedException | ExecutionException e) {
                 JOptionPane.showMessageDialog(
                     null,
                     "Não foi possível conectar ao banco de dados.\n\n" + causa(e),
@@ -45,7 +51,7 @@ public final class Main {
   private static void aplicarTema() {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    } catch (Exception ignored) {
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ignored) {
       // Usa o tema padrão caso o tema do sistema não esteja disponível.
     }
     UIManager.put("OptionPane.messageFont", new Font("Segoe UI", Font.PLAIN, 14));
@@ -53,7 +59,11 @@ public final class Main {
   }
 
   private static String causa(Exception e) {
-    Throwable causa = e.getCause() == null ? e : e.getCause();
-    return causa.getMessage() == null ? causa.getClass().getSimpleName() : causa.getMessage();
+    Throwable causa = e.getCause();
+    if (causa == null) {
+      causa = e;
+    }
+    String mensagem = causa.getMessage();
+    return mensagem == null ? causa.getClass().getSimpleName() : mensagem;
   }
 }

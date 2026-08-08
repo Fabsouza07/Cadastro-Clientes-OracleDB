@@ -1,22 +1,50 @@
 package br.com.cadastro.app;
 
-import br.com.cadastro.model.Cliente;
-import br.com.cadastro.model.Estatisticas;
-import br.com.cadastro.service.ClienteService;
-import br.com.cadastro.util.Config;
-import br.com.cadastro.util.Csv;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.List;
-import javax.swing.*;
-import javax.swing.border.*;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
+
+import br.com.cadastro.model.Cliente;
+import br.com.cadastro.model.Estatisticas;
+import br.com.cadastro.service.ClienteService;
+import br.com.cadastro.util.Config;
+import br.com.cadastro.util.Csv;
 
 final class MainFrame extends JFrame {
   private static final Color NAVY = new Color(15, 23, 42), BLUE = new Color(37, 99, 235);
@@ -175,14 +203,17 @@ final class MainFrame extends JFrame {
         .getDocument()
         .addDocumentListener(
             new DocumentListener() {
+              @Override
               public void insertUpdate(DocumentEvent e) {
                 pesquisar();
               }
 
+              @Override
               public void removeUpdate(DocumentEvent e) {
                 pesquisar();
               }
 
+              @Override
               public void changedUpdate(DocumentEvent e) {
                 pesquisar();
               }
@@ -393,11 +424,13 @@ final class MainFrame extends JFrame {
 
   private void executar(Tarefa task) {
     new SwingWorker<Void, Void>() {
+      @Override
       protected Void doInBackground() throws Exception {
         task.run();
         return null;
       }
 
+      @Override
       protected void done() {
         try {
           get();

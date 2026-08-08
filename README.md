@@ -3,9 +3,9 @@
 Projeto local e educacional em Java 25, Maven e JDBC.
 
 ## Preparação
-1. Crie (ou escolha) um usuário/schema Oracle com permissão para criar tabelas.
-2. Conecte-se a esse schema e execute `sql/criar_banco.sql`.
-3. Edite `src/main/resources/config.properties` com a URL, o usuário e a senha do Oracle. O padrão aponta para a instalação local no serviço `ORCLPDB` (`localhost:1521`).
+1. Como `SYS AS SYSDBA`, execute `sql/criar_usuario.sql` para criar o usuário `CADASTRO_CLIENTES` no PDB `FREEPDB1`.
+2. Conecte-se como `CADASTRO_CLIENTES` e execute `sql/criar_banco.sql`.
+3. Edite `src/main/resources/config.properties` com a URL, o usuário e a senha do Oracle. O padrão aponta para Oracle Free no serviço `FREEPDB1` (`localhost:1521`).
    Para outro serviço, use o formato `jdbc:oracle:thin:@//servidor:porta/nome_do_servico`.
 4. No terminal da pasta, execute: `mvn clean compile exec:java`.
 
