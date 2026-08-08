@@ -2,7 +2,7 @@
 -- Executar como administrador (SYS ou SYSTEM)
 
 CREATE TABLE usuarios (
-    id           NUMBER GENERATED ALWAYS AS IDENTITY,
+    id           NUMBER PRIMARY KEY,
     login        VARCHAR2(50) NOT NULL UNIQUE,
     senha        VARCHAR2(255) NOT NULL,
     nome         VARCHAR2(100) NOT NULL,
