@@ -604,6 +604,7 @@ final class MainFrame extends JFrame {
 
   private JButton navButton(String text, Runnable action) {
     JButton b = new JButton(text);
+    b.setFont(new Font("Segoe UI", Font.PLAIN, 15));
     b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     b.setAlignmentX(LEFT_ALIGNMENT);
     b.setHorizontalAlignment(SwingConstants.LEFT);
