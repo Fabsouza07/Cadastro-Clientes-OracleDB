@@ -10,6 +10,7 @@
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <exec.mainClass>br.com.cadastro.app.Main</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -62,7 +63,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.6.1</version>
                 <configuration>
-                    <mainClass>br.com.cadastro.app.Main</mainClass>
+                    <mainClass>${exec.mainClass}</mainClass>
                 </configuration>
             </plugin>
             <plugin>

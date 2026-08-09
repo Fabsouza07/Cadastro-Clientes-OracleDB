@@ -58,8 +58,8 @@ public final class Main {
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ignored) {
       // Usa o tema padrão caso o tema do sistema não esteja disponível.
     }
-    UIManager.put("OptionPane.messageFont", new Font("Segoe UI", Font.PLAIN, 14));
-    UIManager.put("OptionPane.buttonFont", new Font("Segoe UI Semibold", Font.PLAIN, 13));
+    UIManager.put("OptionPane.messageFont", new Font("Segoe UI", Font.PLAIN, 18));
+    UIManager.put("OptionPane.buttonFont", new Font("Segoe UI Semibold", Font.PLAIN, 16));
   }
 
   private static String causa(Exception e) {

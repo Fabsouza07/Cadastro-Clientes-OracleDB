@@ -9,10 +9,9 @@ public final class Config {
 
   static {
     try (InputStream in = Config.class.getResourceAsStream("/config.properties")) {
-      if (in == null) {
-        throw new IllegalStateException("Arquivo config.properties não encontrado.");
+      if (in != null) {
+        P.load(in);
       }
-      P.load(in);
     } catch (IOException e) {
       throw new ExceptionInInitializerError(e);
     }

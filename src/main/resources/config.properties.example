@@ -1,0 +1,6 @@
+# Copie este arquivo para config.properties somente no seu ambiente local.
+# Prefira definir DB_URL, DB_USUARIO e DB_SENHA como variáveis de ambiente.
+app.banco=Oracle Database
+db.url=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+db.usuario=cadastro_clientes
+db.senha=

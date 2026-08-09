@@ -13,6 +13,11 @@ public final class Conexao {
     String usuario = Config.get("db.usuario");
     String senha = Config.get("db.senha");
 
+    if (url.isBlank()) {
+      throw new SQLException(
+          "Configure DB_URL (ou db.url em config.properties local) antes de iniciar a aplicação.");
+    }
+
     if (usuario == null || usuario.isBlank()) {
       return DriverManager.getConnection(url);
     }

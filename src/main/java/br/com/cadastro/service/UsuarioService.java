@@ -80,7 +80,8 @@ public final class UsuarioService {
    */
   public boolean atualizarSenha(long id, String senhaAtual, String novaSenha)
       throws SQLException {
-    Optional<Usuario> usuario = dao.buscarPorLogin(""); // Precisaríamos de um método para buscar por ID
+    validarSenha(novaSenha);
+    Optional<Usuario> usuario = dao.buscarPorId(id);
 
     if (usuario.isEmpty()) {
       return false;
@@ -116,11 +117,15 @@ public final class UsuarioService {
     if (login == null || login.isBlank()) {
       throw new IllegalArgumentException("Login obrigatório.");
     }
-    if (senha == null || senha.isBlank() || senha.length() < 6) {
-      throw new IllegalArgumentException("Senha obrigatória e deve ter no mínimo 6 caracteres.");
-    }
+    validarSenha(senha);
     if (nome == null || nome.isBlank()) {
       throw new IllegalArgumentException("Nome obrigatório.");
+    }
+  }
+
+  private static void validarSenha(String senha) {
+    if (senha == null || senha.isBlank() || senha.length() < 6) {
+      throw new IllegalArgumentException("Senha obrigatória e deve ter no mínimo 6 caracteres.");
     }
   }
 }

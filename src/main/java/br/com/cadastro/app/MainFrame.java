@@ -15,6 +15,7 @@ import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -25,6 +26,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -44,6 +46,7 @@ import br.com.cadastro.model.Cliente;
 import br.com.cadastro.model.Estatisticas;
 import br.com.cadastro.model.Usuario;
 import br.com.cadastro.service.ClienteService;
+import br.com.cadastro.service.UsuarioService;
 import br.com.cadastro.util.Config;
 import br.com.cadastro.util.Csv;
 
@@ -53,6 +56,7 @@ final class MainFrame extends JFrame {
   private static final String MASCARA_TELEFONE_FIXO = "(##) ####-####";
   private static final String MASCARA_TELEFONE_CELULAR = "(##) #####-####";
   private final ClienteService service = new ClienteService();
+  private final UsuarioService usuarioService = new UsuarioService();
   private final Usuario usuarioLogado;
   private final DefaultTableModel tableModel =
       new DefaultTableModel(
@@ -135,6 +139,7 @@ final class MainFrame extends JFrame {
     p.add(navButton("Visão geral", this::carregarDados));
     p.add(navButton("Novo cliente", () -> abrirFormulario(null)));
     p.add(navButton("Atualizar dados", this::editarSelecionado));
+    p.add(navButton("Gerenciar usuários", this::gerenciarUsuarios));
     p.add(Box.createVerticalGlue());
     JLabel note = new JLabel("  Dados protegidos localmente");
     note.setForeground(MUTED);
@@ -372,6 +377,114 @@ final class MainFrame extends JFrame {
             service.excluir(c.id());
             carregarDados();
           });
+  }
+
+  private void gerenciarUsuarios() {
+    String[] opcoes = {"Novo usuário", "Alterar minha senha", "Desativar usuário", "Cancelar"};
+    int opcao =
+        JOptionPane.showOptionDialog(
+            this,
+            "Escolha a ação desejada.",
+            "Gerenciar usuários",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            opcoes,
+            opcoes[0]);
+    switch (opcao) {
+      case 0 -> abrirFormularioUsuario();
+      case 1 -> abrirAlteracaoSenha();
+      case 2 -> desativarUsuario();
+      default -> {
+        // Nenhuma ação selecionada.
+      }
+    }
+  }
+
+  private void abrirFormularioUsuario() {
+    JTextField login = new JTextField();
+    JTextField nome = new JTextField();
+    JPasswordField senha = new JPasswordField();
+    JPasswordField confirmacao = new JPasswordField();
+    JPanel form = formularioUsuarios(
+        new Object[][] {{"Login", login}, {"Nome completo", nome}, {"Senha", senha}, {"Confirmar senha", confirmacao}});
+    if (JOptionPane.showConfirmDialog(
+            this, form, "Cadastrar usuário", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+        != JOptionPane.OK_OPTION) return;
+
+    String senhaTexto = new String(senha.getPassword());
+    if (!senhaTexto.equals(new String(confirmacao.getPassword()))) {
+      mensagem("As senhas não coincidem.", JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+    executar(
+        () -> {
+          long id = usuarioService.criar(login.getText().trim(), senhaTexto, nome.getText().trim());
+          mensagem("Usuário criado com ID: " + id, JOptionPane.INFORMATION_MESSAGE);
+        });
+  }
+
+  private void abrirAlteracaoSenha() {
+    JPasswordField atual = new JPasswordField();
+    JPasswordField nova = new JPasswordField();
+    JPasswordField confirmacao = new JPasswordField();
+    JPanel form = formularioUsuarios(
+        new Object[][] {{"Senha atual", atual}, {"Nova senha", nova}, {"Confirmar nova senha", confirmacao}});
+    if (JOptionPane.showConfirmDialog(
+            this, form, "Alterar minha senha", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+        != JOptionPane.OK_OPTION) return;
+
+    String senhaNova = new String(nova.getPassword());
+    if (!senhaNova.equals(new String(confirmacao.getPassword()))) {
+      mensagem("As senhas não coincidem.", JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+    executar(
+        () -> {
+          if (!usuarioService.atualizarSenha(
+              usuarioLogado.id(), new String(atual.getPassword()), senhaNova)) {
+            throw new IllegalArgumentException("Não foi possível alterar a senha.");
+          }
+          mensagem("Senha alterada com sucesso.", JOptionPane.INFORMATION_MESSAGE);
+        });
+  }
+
+  private void desativarUsuario() {
+    String login =
+        JOptionPane.showInputDialog(this, "Informe o login do usuário a desativar:", "Desativar usuário", JOptionPane.WARNING_MESSAGE);
+    if (login == null || login.isBlank()) return;
+    if (usuarioLogado.login().equalsIgnoreCase(login.trim())) {
+      mensagem("Não é permitido desativar o usuário atualmente logado.", JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+    if (JOptionPane.showConfirmDialog(
+            this,
+            "Deseja desativar o usuário '" + login.trim() + "'? Ele não poderá mais entrar no sistema.",
+            "Confirmar desativação",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE)
+        != JOptionPane.YES_OPTION) return;
+    executar(
+        () -> {
+          Optional<Usuario> usuario = usuarioService.buscarPorLogin(login.trim());
+          if (usuario.isEmpty() || !usuarioService.desativar(usuario.get().id())) {
+            throw new IllegalArgumentException("Usuário não encontrado ou já está desativado.");
+          }
+          mensagem("Usuário desativado com sucesso.", JOptionPane.INFORMATION_MESSAGE);
+        });
+  }
+
+  private static JPanel formularioUsuarios(Object[][] campos) {
+    JPanel form = new JPanel(new GridLayout(0, 1, 0, 8));
+    form.setBorder(new EmptyBorder(8, 12, 8, 12));
+    form.setPreferredSize(new Dimension(420, campos.length * 58));
+    for (Object[] campo : campos) {
+      JLabel label = new JLabel((String) campo[0]);
+      label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+      form.add(label);
+      form.add((JTextField) campo[1]);
+    }
+    return form;
   }
 
   private Cliente selecionado() {

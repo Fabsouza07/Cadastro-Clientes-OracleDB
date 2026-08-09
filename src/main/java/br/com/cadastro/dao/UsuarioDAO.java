@@ -1,6 +1,7 @@
 package br.com.cadastro.dao;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,6 +31,17 @@ public class UsuarioDAO {
     }
   }
 
+  public Optional<Usuario> buscarPorId(long id) throws SQLException {
+    String sql = "SELECT id, login, senha, nome, ativo FROM usuarios WHERE id = ? AND ativo = 1";
+    try (Connection conexao = Conexao.abrir();
+        PreparedStatement comando = conexao.prepareStatement(sql)) {
+      comando.setLong(1, id);
+      try (ResultSet resultado = comando.executeQuery()) {
+        return resultado.next() ? Optional.of(mapear(resultado)) : Optional.empty();
+      }
+    }
+  }
+
   /**
    * Cria um novo usuário no banco.
    *
@@ -38,22 +50,17 @@ public class UsuarioDAO {
    * @throws SQLException se houver erro na conexão
    */
   public long criar(Usuario usuario) throws SQLException {
-    String sql =
-        "INSERT INTO usuarios (login, senha, nome, ativo) VALUES (?, ?, ?, 1) RETURNING id INTO ?";
+    String sql = "BEGIN INSERT INTO usuarios (login, senha, nome, ativo) "
+        + "VALUES (?, ?, ?, 1) RETURNING id INTO ?; END;";
     try (Connection conexao = Conexao.abrir();
-        PreparedStatement comando = conexao.prepareStatement(sql, new String[] {"id"})) {
+        CallableStatement comando = conexao.prepareCall(sql)) {
       comando.setString(1, usuario.login());
       comando.setString(2, usuario.senha());
       comando.setString(3, usuario.nome());
+      comando.registerOutParameter(4, java.sql.Types.BIGINT);
       comando.executeUpdate();
-
-      try (ResultSet rs = comando.getGeneratedKeys()) {
-        if (rs.next()) {
-          return rs.getLong(1);
-        }
-      }
+      return comando.getLong(4);
     }
-    throw new SQLException("Falha ao criar usuário");
   }
 
   /**
