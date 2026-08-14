@@ -71,10 +71,12 @@ public final class UsuarioUtil {
     String senha = Console.ler("Senha: ");
 
     try {
-      var usuario = service.autenticar(login, senha);
-      if (usuario.isPresent()) {
+      var resultado = service.autenticar(login, senha);
+      if (resultado.usuario().isPresent()) {
         Console.sucesso("Autenticação bem-sucedida!");
-        System.out.println("Usuário: " + usuario.get().nome());
+        System.out.println("Usuário: " + resultado.usuario().get().nome());
+      } else if (resultado.bloqueado()) {
+        Console.aviso("Conta bloqueada. Aguarde 10 minutos para tentar novamente.");
       } else {
         Console.aviso("Login ou senha inválidos.");
       }

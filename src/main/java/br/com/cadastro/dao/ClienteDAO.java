@@ -16,9 +16,11 @@ import br.com.cadastro.model.Estatisticas;
 import br.com.cadastro.util.Conexao;
 
 public class ClienteDAO {
+  private static final String CLIENTES = Conexao.tabela("clientes");
+
   public long inserir(Cliente cliente) throws SQLException {
     String sql =
-        "BEGIN INSERT INTO clientes(nome,idade,cidade,email,telefone_fixo,telefone_celular) "
+        "BEGIN INSERT INTO " + CLIENTES + "(nome,idade,cidade,email,telefone_fixo,telefone_celular) "
             + "VALUES(?,?,?,?,?,?) RETURNING id INTO ?; END;";
     try (Connection conexao = Conexao.abrir();
         CallableStatement comando = conexao.prepareCall(sql)) {
@@ -37,7 +39,7 @@ public class ClienteDAO {
           default -> "nome, id";
         };
     List<Cliente> clientes = new ArrayList<>();
-    String sql = "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM clientes ORDER BY " + campo;
+    String sql = "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM " + CLIENTES + " ORDER BY " + campo;
 
     try (Connection conexao = Conexao.abrir();
         PreparedStatement comando = conexao.prepareStatement(sql);
@@ -50,7 +52,7 @@ public class ClienteDAO {
   }
 
   public Optional<Cliente> buscarPorId(long id) throws SQLException {
-    String sql = "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM clientes WHERE id=?";
+    String sql = "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM " + CLIENTES + " WHERE id=?";
     try (Connection conexao = Conexao.abrir();
         PreparedStatement comando = conexao.prepareStatement(sql)) {
       comando.setLong(1, id);
@@ -68,7 +70,7 @@ public class ClienteDAO {
     }
 
     String sql =
-        "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM clientes "
+        "SELECT id,nome,idade,cidade,email,telefone_fixo,telefone_celular FROM " + CLIENTES + " "
             + "WHERE LOWER(nome) LIKE LOWER(?) OR LOWER(cidade) LIKE LOWER(?) "
             + "OR LOWER(email) = LOWER(?) ORDER BY nome";
     List<Cliente> clientes = new ArrayList<>();
@@ -87,7 +89,7 @@ public class ClienteDAO {
   }
 
   public boolean atualizar(Cliente cliente) throws SQLException {
-    String sql = "UPDATE clientes SET nome=?,idade=?,cidade=?,email=?,telefone_fixo=?,telefone_celular=? WHERE id=?";
+    String sql = "UPDATE " + CLIENTES + " SET nome=?,idade=?,cidade=?,email=?,telefone_fixo=?,telefone_celular=? WHERE id=?";
     try (Connection conexao = Conexao.abrir();
         PreparedStatement comando = conexao.prepareStatement(sql)) {
       preencher(comando, cliente);
@@ -98,7 +100,7 @@ public class ClienteDAO {
 
   public boolean excluir(long id) throws SQLException {
     try (Connection conexao = Conexao.abrir();
-        PreparedStatement comando = conexao.prepareStatement("DELETE FROM clientes WHERE id=?")) {
+        PreparedStatement comando = conexao.prepareStatement("DELETE FROM " + CLIENTES + " WHERE id=?")) {
       comando.setLong(1, id);
       return comando.executeUpdate() == 1;
     }
@@ -114,7 +116,7 @@ public class ClienteDAO {
         Statement comando = conexao.createStatement()) {
       try (ResultSet resultado =
           comando.executeQuery(
-              "SELECT COUNT(*) total, COALESCE(AVG(idade),0) media FROM clientes")) {
+              "SELECT COUNT(*) total, COALESCE(AVG(idade),0) media FROM " + CLIENTES)) {
         if (resultado.next()) {
           total = resultado.getLong("total");
           media = resultado.getDouble("media");
@@ -122,14 +124,14 @@ public class ClienteDAO {
       }
       try (ResultSet resultado =
           comando.executeQuery(
-              "SELECT nome FROM clientes ORDER BY idade DESC, nome FETCH FIRST 1 ROW ONLY")) {
+              "SELECT nome FROM " + CLIENTES + " ORDER BY idade DESC, nome FETCH FIRST 1 ROW ONLY")) {
         if (resultado.next()) {
           maisVelho = resultado.getString(1);
         }
       }
       try (ResultSet resultado =
           comando.executeQuery(
-              "SELECT cidade, COUNT(*) qtd FROM clientes "
+              "SELECT cidade, COUNT(*) qtd FROM " + CLIENTES + " "
                   + "GROUP BY cidade ORDER BY qtd DESC, cidade FETCH FIRST 1 ROW ONLY")) {
         if (resultado.next()) {
           cidade = resultado.getString(1);

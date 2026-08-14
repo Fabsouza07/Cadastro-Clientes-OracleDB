@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.cadastro.dao.UsuarioDAO;
+import br.com.cadastro.model.ResultadoAutenticacao;
 import br.com.cadastro.model.Usuario;
 
 /** Serviço para autenticação de usuários. */
@@ -16,27 +17,38 @@ public final class UsuarioService {
    *
    * @param login o login do usuário
    * @param senha a senha em texto plano
-   * @return Optional contendo o usuário se autenticado com sucesso
+   * @return resultado contendo o usuário autenticado ou o estado de bloqueio armazenado no banco
    * @throws SQLException se houver erro na conexão
    */
-  public Optional<Usuario> autenticar(String login, String senha) throws SQLException {
+  public ResultadoAutenticacao autenticar(String login, String senha) throws SQLException {
     if (login == null || login.isBlank() || senha == null || senha.isBlank()) {
       throw new IllegalArgumentException("Login e senha são obrigatórios.");
     }
 
-    Optional<Usuario> usuario = dao.buscarPorLogin(login);
+    Optional<UsuarioDAO.EstadoAutenticacao> estado = dao.buscarParaAutenticacao(login);
 
-    if (usuario.isEmpty()) {
-      return Optional.empty();
+    if (estado.isEmpty()) {
+      return ResultadoAutenticacao.invalido(0);
     }
+    if (estado.get().bloqueado()) return ResultadoAutenticacao.contaBloqueada();
 
-    Usuario usuarioEncontrado = usuario.get();
+    Usuario usuarioEncontrado = estado.get().usuario();
     // Verifica a senha usando bcrypt
     boolean senhaValida = BCrypt.verifyer()
         .verify(senha.toCharArray(), usuarioEncontrado.senha().toCharArray())
         .verified;
 
-    return senhaValida ? Optional.of(usuarioEncontrado) : Optional.empty();
+    if (senhaValida) {
+      dao.limparFalhas(usuarioEncontrado.id());
+      return ResultadoAutenticacao.sucesso(usuarioEncontrado);
+    }
+
+    dao.registrarFalha(usuarioEncontrado.id());
+    UsuarioDAO.EstadoAutenticacao estadoAtualizado =
+        dao.buscarParaAutenticacao(login).orElseThrow();
+    return estadoAtualizado.bloqueado()
+        ? ResultadoAutenticacao.contaBloqueada()
+        : ResultadoAutenticacao.invalido(Math.max(0, 3 - estadoAtualizado.tentativasFalhas()));
   }
 
   /**

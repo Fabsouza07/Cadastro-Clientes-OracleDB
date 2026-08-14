@@ -22,6 +22,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 import br.com.cadastro.model.Usuario;
+import br.com.cadastro.model.ResultadoAutenticacao;
 import br.com.cadastro.service.UsuarioService;
 
 /** Tela de login para autenticação de usuários. */
@@ -161,7 +162,8 @@ final class LoginFrame extends JFrame {
           realizarLogin(
               loginField.getText().trim(),
               new String(senhaField.getPassword()),
-              errorLabel);
+              errorLabel,
+              loginButton);
         });
     panel.add(loginButton, gbc);
 
@@ -171,32 +173,49 @@ final class LoginFrame extends JFrame {
     return panel;
   }
 
-  private void realizarLogin(String login, String senha, JLabel errorLabel) {
+  private void realizarLogin(String login, String senha, JLabel errorLabel, JButton loginButton) {
     if (login.isEmpty() || senha.isEmpty()) {
       errorLabel.setText("Login e senha são obrigatórios.");
       return;
     }
+    loginButton.setEnabled(false);
 
-    new SwingWorker<java.util.Optional<Usuario>, Void>() {
+    new SwingWorker<ResultadoAutenticacao, Void>() {
       @Override
-      protected java.util.Optional<Usuario> doInBackground() throws Exception {
+      protected ResultadoAutenticacao doInBackground() throws Exception {
         return service.autenticar(login, senha);
       }
 
       @Override
       protected void done() {
         try {
-          java.util.Optional<Usuario> usuario = get();
-          if (usuario.isPresent()) {
+          ResultadoAutenticacao resultado = get();
+          if (resultado.usuario().isPresent()) {
             LoginFrame.this.dispose();
-            onLoginSuccess.accept(usuario.get());
+            onLoginSuccess.accept(resultado.usuario().get());
           } else {
-            errorLabel.setText("Login ou senha inválidos.");
+            exibirFalhaAutenticacao(resultado, errorLabel);
+            loginButton.setEnabled(true);
           }
         } catch (Exception e) {
           errorLabel.setText("Erro ao conectar ao banco: " + e.getMessage());
+          loginButton.setEnabled(true);
         }
       }
     }.execute();
+  }
+
+  private static void exibirFalhaAutenticacao(ResultadoAutenticacao resultado, JLabel errorLabel) {
+    if (resultado.bloqueado()) {
+      errorLabel.setText("Conta bloqueada pelo banco. Aguarde 10 minutos para tentar novamente.");
+    } else if (resultado.tentativasRestantes() > 0) {
+      errorLabel.setText(
+          "Login ou senha inválidos. Restam "
+              + resultado.tentativasRestantes()
+              + " tentativa"
+              + (resultado.tentativasRestantes() == 1 ? "." : "s."));
+    } else {
+      errorLabel.setText("Login ou senha inválidos.");
+    }
   }
 }

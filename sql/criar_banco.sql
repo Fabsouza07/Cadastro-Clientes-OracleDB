@@ -1,5 +1,4 @@
--- Execute este script conectado ao schema Oracle que a aplicacao utilizara.
--- Exemplo para Oracle XE: conecte-se ao servico XEPDB1 como CADASTRO_CLIENTES.
+-- Execute conectado como CADASTRO_CLIENTES, proprietário do schema.
 
 DECLARE
   tabela_existe NUMBER;

@@ -1,4 +1,13 @@
+# Build outputs
 target/
+
+# IDE and editor settings
 .vs/
+.idea/
+.vscode/
+
+# Local logs
 *.log
+
+# Local database configuration - keep only config.properties.example versioned
 src/main/resources/config.properties

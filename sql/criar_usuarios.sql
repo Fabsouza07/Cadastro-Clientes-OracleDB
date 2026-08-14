@@ -12,11 +12,35 @@ BEGIN
         senha            VARCHAR2(255 CHAR) NOT NULL,
         nome             VARCHAR2(100 CHAR) NOT NULL,
         ativo            NUMBER(1) DEFAULT 1 NOT NULL,
+        tentativas_falhas NUMBER(1) DEFAULT 0 NOT NULL,
+        bloqueado_ate    TIMESTAMP,
         data_criacao     TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         CONSTRAINT ck_usuarios_ativo CHECK (ativo IN (0, 1))
       )
     ]';
+  END IF;
+END;
+/
+
+DECLARE
+  coluna_existe NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO coluna_existe FROM user_tab_columns
+  WHERE table_name = 'USUARIOS' AND column_name = 'TENTATIVAS_FALHAS';
+  IF coluna_existe = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE usuarios ADD (tentativas_falhas NUMBER(1) DEFAULT 0 NOT NULL)';
+  END IF;
+END;
+/
+
+DECLARE
+  coluna_existe NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO coluna_existe FROM user_tab_columns
+  WHERE table_name = 'USUARIOS' AND column_name = 'BLOQUEADO_ATE';
+  IF coluna_existe = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE usuarios ADD (bloqueado_ate TIMESTAMP)';
   END IF;
 END;
 /

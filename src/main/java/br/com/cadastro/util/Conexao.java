@@ -25,6 +25,15 @@ public final class Conexao {
     return DriverManager.getConnection(url, usuario, senha);
   }
 
+  public static String tabela(String nomeTabela) {
+    String schema = Config.get("db.schema");
+    if (schema.isBlank()) schema = "cadastro_clientes";
+    if (!schema.matches("[A-Za-z][A-Za-z0-9_$#]*") || !nomeTabela.matches("[A-Za-z][A-Za-z0-9_$#]*")) {
+      throw new IllegalStateException("Nome de schema ou tabela inválido na configuração.");
+    }
+    return schema + "." + nomeTabela;
+  }
+
   public static void testar() throws SQLException {
     try (Connection conexao = abrir()) {
       if (!conexao.isValid(5)) {
