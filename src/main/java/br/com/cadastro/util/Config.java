@@ -20,7 +20,11 @@ public final class Config {
   private Config() {}
 
   public static String get(String chave) {
-    String env = System.getenv(chave.toUpperCase().replace('.', '_'));
+    String nomeVariavel =
+        chave.startsWith("db.")
+            ? "ORACLE_" + chave.toUpperCase().replace('.', '_')
+            : chave.toUpperCase().replace('.', '_');
+    String env = System.getenv(nomeVariavel);
     return env != null && !env.isBlank() ? env : P.getProperty(chave, "").trim();
   }
 }

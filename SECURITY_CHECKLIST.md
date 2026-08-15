@@ -33,22 +33,22 @@ git push --force
 
 3. Adote variáveis de ambiente para configurações sensíveis
 
-   - Remova `db.senha` do arquivo versionado e carregue a senha via variável de ambiente: `DB_SENHA`.
+   - Remova `db.senha` do arquivo versionado e carregue a senha via variável de ambiente: `ORACLE_DB_SENHA`.
    - Exemplos de export / set:
 
 ```bash
 # Linux / macOS (bash)
-export DB_URL="jdbc:oracle:thin:@//servidor:1521/servico"
-export DB_USUARIO="cadastro_clientes"
-export DB_SENHA="sua_senha_segura"
+export ORACLE_DB_URL="jdbc:oracle:thin:@//servidor:1521/servico"
+export ORACLE_DB_USUARIO="cadastro_app"
+export ORACLE_DB_SENHA="sua_senha_segura"
 
 # Windows PowerShell
-$env:DB_URL = 'jdbc:oracle:thin:@//servidor:1521/servico'
-$env:DB_USUARIO = 'cadastro_clientes'
-$env:DB_SENHA = 'sua_senha_segura'
+$env:ORACLE_DB_URL = 'jdbc:oracle:thin:@//servidor:1521/servico'
+$env:ORACLE_DB_USUARIO = 'cadastro_app'
+$env:ORACLE_DB_SENHA = 'sua_senha_segura'
 ```
 
-   - No Java, prefira ler `System.getenv("DB_SENHA")` ou usar bibliotecas de configuração que suportem ambientes e profiles.
+   - No Java, prefira ler `System.getenv("ORACLE_DB_SENHA")` ou usar bibliotecas de configuração que suportem ambientes e profiles.
 
 4. Configure secrets no CI/CD em vez de variáveis em texto
 

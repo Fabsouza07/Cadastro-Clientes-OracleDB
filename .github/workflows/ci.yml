@@ -36,9 +36,9 @@ jobs:
 
       # Para esta aplicação local, configure suas variáveis de ambiente de banco no próprio ambiente
       # de desenvolvimento. Exemplo:
-      #   DB_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
-      #   DB_USUARIO=cadastro_clientes
-      #   DB_SENHA=<senha_segura>
+      #   ORACLE_DB_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+      #   ORACLE_DB_USUARIO=cadastro_app
+      #   ORACLE_DB_SENHA=<senha_segura>
       
       - name: Build with Maven
         run: mvn -B -DskipTests=false clean verify
